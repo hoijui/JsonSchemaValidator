@@ -1,5 +1,5 @@
 import json# except `$`
-import strutils, sequtils, math, unicode, re, options, sets, uri, httpclient
+import strutils, sequtils, math, unicode, regex, options, sets, uri, httpclient
 
 # created according to:
 # https://tools.ietf.org/pdf/draft-handrews-json-schema-validation-01.pdf
@@ -196,13 +196,14 @@ proc handlePattern(scValue, data: JsonNode): bool =
   doAssert scValue.kind == JString, " pattern kind MUST be a string!"
   case data.kind
   of JString:
-    let regex = re(scValue.getStr)
+    let regex = re2(scValue.getStr)
     let str = data.getStr
     # search for pattern in string (needed because pattern is not necessarily
     # from beginning of string!)
-    let start = find(str, regex)
-    if start >= 0:
-      result = if match(data.getStr, regex, start): true else: false
+    var mtch = RegexMatch2()
+    if find(str, regex, mtch):
+      let start = mtch.boundaries.a
+      result = if match(data.getStr, regex, mtch, start): true else: false
     else:
       result = false
   else:
